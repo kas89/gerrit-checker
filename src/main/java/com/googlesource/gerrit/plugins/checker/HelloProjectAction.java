@@ -67,7 +67,7 @@ class HelloProjectAction
   @Override
   public Description getDescription(ProjectResource resource) {
     return new Description()
-        .setLabel("Say hello")
+        .setLabel("Say hello!")
         .setTitle("Say hello in different languages")
         .setVisible(user.get() instanceof IdentifiedUser);
   }
