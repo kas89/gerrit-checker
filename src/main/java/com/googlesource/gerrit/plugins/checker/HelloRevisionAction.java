@@ -12,19 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.googlesource.gerrit.plugins.cookbook;
+package com.googlesource.gerrit.plugins.checker;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.project.ProjectResource;
+import com.google.gerrit.server.change.RevisionResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-class HelloProjectAction
-    implements UiAction<ProjectResource>,
-        RestModifyView<ProjectResource, HelloProjectAction.Input> {
+class HelloRevisionAction
+    implements UiAction<RevisionResource>,
+        RestModifyView<RevisionResource, HelloRevisionAction.Input> {
 
   private Provider<CurrentUser> user;
 
@@ -34,41 +36,28 @@ class HelloProjectAction
   }
 
   @Inject
-  HelloProjectAction(Provider<CurrentUser> user) {
+  HelloRevisionAction(Provider<CurrentUser> user) {
     this.user = user;
   }
 
-  private boolean isNullOrEmpty(String s) {
-    return s == null || s.isEmpty();
-  }
-
-  private Object firstNonNull(String first, String second) {
-    if (first != null) {
-      return first;
-    }
-    if (second != null) {
-      return second;
-    }
-    throw new NullPointerException();
-  }
-
   @Override
-  public String apply(ProjectResource rsrc, Input input) {
+  public String apply(RevisionResource rev, Input input) {
     final String greeting = input.french ? "Bonjour" : "Hello";
     return String.format(
-        "%s %s from project %s!",
+        "%s %s from change %s, patch set %d!",
         greeting,
-        isNullOrEmpty(input.message)
-            ? firstNonNull(user.get().getUserName(), "world")
+        Strings.isNullOrEmpty(input.message)
+            ? MoreObjects.firstNonNull(user.get().getUserName(), "world")
             : input.message,
-        rsrc.getName());
+        rev.getChange().getId().toString(),
+        rev.getPatchSet().getPatchSetId());
   }
 
   @Override
-  public Description getDescription(ProjectResource resource) {
+  public Description getDescription(RevisionResource resource) {
     return new Description()
-        .setLabel("Say hello!")
+        .setLabel("Say hello")
         .setTitle("Say hello in different languages")
-        .setVisible(user.get() instanceof IdentifiedUser);
+        .setVisible(true);
   }
 }
